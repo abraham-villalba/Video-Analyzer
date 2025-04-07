@@ -2,6 +2,7 @@
 """
 
 import logging
+from datetime import datetime
 import os
 
 # Make sure logs directory exits
@@ -12,8 +13,11 @@ os.makedirs(LOG_DIR, exist_ok=True)
 logger = logging.getLogger("video_analyzer")
 logger.setLevel(logging.DEBUG)  # Use INFO or WARNING in production
 
+# Generate timestamp for log file
+timestamp = datetime.now().strftime("%Y_%m_%d_%H:%M:%S")
+
 # File handler
-file_handler = logging.FileHandler(f"{LOG_DIR}/app.log")
+file_handler = logging.FileHandler(f"{LOG_DIR}/{timestamp}_video_analyzer.log")
 file_handler.setLevel(logging.DEBUG)
 
 # Console handler
