@@ -1,0 +1,11 @@
+flask
+python-dotenv
+langchain
+langchain-ollama
+langchain-openai
+flask-cors
+marshmallow
+
+# Whisper
+torch
+git+https://github.com/openai/whisper.git
