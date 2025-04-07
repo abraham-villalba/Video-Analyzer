@@ -5,6 +5,7 @@ langchain-ollama
 langchain-openai
 flask-cors
 marshmallow
+pytest
 
 # Whisper
 torch

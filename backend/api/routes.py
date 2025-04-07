@@ -15,6 +15,7 @@ def analyze_video():
     if errors:
         logger.error(f"Error analyzing video: {errors}")
         return ResponseModel(status="error", error=errors).to_json(), 400 # Bad Request
+    
 
     print(f"Request: {data}")
     return ResponseModel(status='success', data={'response': data}).to_json(), 200
