@@ -13,11 +13,7 @@ def sample_video():
     if os.path.exists(audio_path):
         os.remove(audio_path)
 
-    yield video_path, audio_path  # This will provide the video and audio paths for the test
-
-    # Cleanup: Delete the audio file after the test is complete
-    if os.path.exists(audio_path):
-        os.remove(audio_path)
+    return video_path, audio_path  # This will provide the video and audio paths for the test
 
 def test_extract_audio_runs(sample_video):
     video_path, audio_path = sample_video
@@ -37,5 +33,5 @@ def test_extract_audio_file_not_found():
     audio_path = "uploads/test/test_audio.wav"
 
     # Test if the extract_audio function raises a subprocess.CalledProcessError
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(FileNotFoundError):
         extract_audio(non_existent_video_path, audio_path)
