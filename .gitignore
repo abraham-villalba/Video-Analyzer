@@ -3,3 +3,5 @@ venv/
 uploads/
 __pycache__/
 logs/
+.pytest_cache/
+.DS_Store
