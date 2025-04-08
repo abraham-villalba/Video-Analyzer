@@ -1,8 +1,8 @@
 import os
 import pytest
-import subprocess
 from api.utils.video_utils import extract_audio
-from api.utils.transcriber import transcribe_audio
+from api.services.transcription_service import transcribe_audio
+
 @pytest.fixture
 def sample_audio():
     """Provide a path to a sample audio"""

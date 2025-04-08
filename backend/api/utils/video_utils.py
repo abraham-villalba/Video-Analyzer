@@ -58,3 +58,12 @@ def store_video(video_file):
     extract_audio(video_path, audio_path)
 
     return directory_id
+
+def video_exits(video_id):
+    video_dir = os.path.join(UPLOAD_DIR, video_id)
+    return os.path.exists(video_dir)
+
+def get_audio_file(video_id):
+    video_dir = os.path.join(UPLOAD_DIR, video_id)
+    audio_path = os.path.join(video_dir, "audio.wav")
+    return audio_path if os.path.exists(audio_path) else None
