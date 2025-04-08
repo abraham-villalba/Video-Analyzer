@@ -1,3 +1,4 @@
+from utils.api import upload_video, analyze_video
 import streamlit as st
 import time
 
@@ -20,7 +21,8 @@ state_defaults = {
     "analysis_result": None,
     "last_uploaded_video_name": None,
     "last_language": None,
-    "last_summary_type": None
+    "last_summary_type": None,
+    "error_message": None
 }
 
 for key, value in state_defaults.items():
@@ -33,7 +35,7 @@ with col1:
     video_file = st.file_uploader("Choose a video file", type=['mp4', 'mov'])
 with col2:
     language = st.selectbox("Language", ["en", "es", "fr", "de", "infer"], index=0)
-    summary_type = st.selectbox("Summary Type", ["concise", "detailed"])
+    summary_type = st.selectbox("Summary Type", ["Concise", "Detailed"])
 
 analyze_clicked = st.button("Analyze video", disabled=st.session_state.waiting)
 
@@ -53,18 +55,27 @@ if analyze_clicked and not st.session_state.waiting:
         st.session_state.analysis_result = None
         st.rerun()  # Ensure rerun so the button shows disabled on next render
 
+if st.session_state.error_message:
+    st.error(st.session_state.error_message)
+
 # After rerun, if waiting is True, start the processing
 if st.session_state.waiting and not st.session_state.analysis_result:
     try:
         with st.status("Uploading video...", state="running", expanded=True) as s:
-            files = {"file": video_file.getvalue()}
-            time.sleep(5)
+            # Only upload video if its a new file
+            if st.session_state.last_uploaded_video_name != video_file.name:
+                s.update(label="Uploading video...", state="running")
+                st.session_state.video_id = upload_video(video_file)
+            if st.session_state.video_id == None:
+                raise Exception("Error while uploading video, try again later...")
+            
             s.update(label="Analyzing video...", state="running")
-            time.sleep(5)
+            results = analyze_video(st.session_state.video_id, language, summary_type)
+
             st.session_state.analysis_result = {
                 "topics": ["Sports", "Politics"],
                 "summary": "This is a summary of the video.",
-                "transcript": "This is a transcript.",
+                "transcript": results['transcript'],
                 "keyframes": [
                     {"image_url": f"Image {i+1}", "description": f"Description {i+1}"}
                     for i in range(20)
@@ -72,7 +83,7 @@ if st.session_state.waiting and not st.session_state.analysis_result:
             }
             s.update(label="Analysis completed!", state="complete")
     except Exception as e:
-        st.error(f"Error during processing: {e}")
+        st.session_state.error_message = f"Error during processing: {e}"
     finally:
         st.session_state.last_uploaded_video_name = video_file.name
         st.session_state.last_language = language
@@ -82,7 +93,6 @@ if st.session_state.waiting and not st.session_state.analysis_result:
 
 # Results section
 if st.session_state.analysis_result:
-    st.success("Processing completed!")
     result = st.session_state.analysis_result
     st.markdown("---")
     st.markdown("## Video Analysis Results")
