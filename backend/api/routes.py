@@ -4,6 +4,7 @@ from api.utils.response_model import ResponseModel
 from api.utils.logger import logger
 from api.utils.video_utils import store_video, video_exits, get_audio_file
 from api.services.transcription_service import transcribe_audio
+from api.services.summarization_service import generate_transcript_summary
 
 
 # Create a Blueprint object to define the routes
@@ -40,10 +41,11 @@ def analyze_video():
     
     audio_path = get_audio_file(video_id)
     transcript = transcribe_audio(audio_path)
+    transcript_summary = generate_transcript_summary(transcript, data.get('summary_type', 'concise'), data.get('language', 'infer'))
 
     response = {
         'transcript': transcript,
-        'summary': '',
+        'summary': transcript_summary,
         'topics': [],
         'keyframes': []
     }
