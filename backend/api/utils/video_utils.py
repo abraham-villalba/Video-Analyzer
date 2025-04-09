@@ -105,7 +105,7 @@ def extract_keyframes(video_path: str, output_dir: str, max_frames: int = 20) ->
 
 def store_video(video_file):
     """
-    Generates an id for a video file and stores it on the system with its corresponding audio file
+    Generates an id for a video file and stores it on the system with its corresponding audio file and keyframes
     :param video_file: The video to store
     :returns id identifier for this video analysis storage
     """
@@ -122,6 +122,11 @@ def store_video(video_file):
     # Extract audio
     audio_path = os.path.join(save_dir, "audio.wav")
     extract_audio(video_path, audio_path)
+
+    # Extract keyframes
+    keyframes_dir = os.path.join(save_dir, "keyframes")
+    os.makedirs(keyframes_dir, exist_ok=True)
+    extract_keyframes(video_path, keyframes_dir)
 
     return directory_id
 
