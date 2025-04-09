@@ -33,13 +33,13 @@ def analyze_video(video_id: str, language: str, summary_type: str) -> dict:
                 "language": language.lower(),
                 "summary_type": summary_type.lower()
             },
-            timeout=50
+            timeout=100
         )
         if response.status_code == 200:
             data = response.json()["data"]
             return data
         else:
-            raise Exception("Upload failed with status code: " + str(response.status_code))
+            raise Exception("Analysis failed with status code: " + str(response.status_code))
     except requests.exceptions.RequestException as e:
-        print(f"Anlyzis failed: {str(e)}")
+        print(f"Anlysis failed: {str(e)}")
         return None

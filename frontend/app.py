@@ -29,6 +29,7 @@ for key, value in state_defaults.items():
     if key not in st.session_state:
         st.session_state[key] = value
 
+# --- FORM SECTION ---
 st.markdown("### Upload video for analysis")
 col1, col2 = st.columns([0.6, 0.4])
 with col1:
@@ -53,11 +54,14 @@ if analyze_clicked and not st.session_state.waiting:
     else:
         st.session_state.waiting = True
         st.session_state.analysis_result = None
+        st.session_state.error_message = None
         st.rerun()  # Ensure rerun so the button shows disabled on next render
 
 if st.session_state.error_message:
     st.error(st.session_state.error_message)
 
+
+# --- LOADING SECTION ---
 # After rerun, if waiting is True, start the processing
 if st.session_state.waiting and not st.session_state.analysis_result:
     try:
@@ -74,8 +78,8 @@ if st.session_state.waiting and not st.session_state.analysis_result:
 
             st.session_state.analysis_result = {
                 "topics": ["Sports", "Politics"],
-                "summary": "This is a summary of the video.",
-                "transcript": results['transcript'],
+                "summary": results.get('summary', 'No summary was generated.'),
+                "transcript": results.get('transcript', 'No transcript was generated'),
                 "keyframes": [
                     {"image_url": f"Image {i+1}", "description": f"Description {i+1}"}
                     for i in range(20)
