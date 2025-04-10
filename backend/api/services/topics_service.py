@@ -18,7 +18,7 @@ LANGUAGES = {
 
 # LLM Selection
 if Config.LLM_WRAPPER == 'openai':
-    logger.info(f"Using OpenAI models for summarization -> {Config.LLM_MODEL}")
+    logger.info(f"Using OpenAI models for topic extraction -> {Config.LLM_MODEL}")
     model = ChatOpenAI(
                 api_key=Config.OPENAI_API_KEY, 
                 model=Config.LLM_MODEL,
@@ -28,7 +28,7 @@ if Config.LLM_WRAPPER == 'openai':
                 max_retries=2
             )
 else:
-    logger.info(f"Using Ollama models for summarization -> {Config.LLM_MODEL}")
+    logger.info(f"Using Ollama models for topic extraction -> {Config.LLM_MODEL}")
     model = ChatOllama(model=Config.LLM_MODEL, temperature=0.2, max_tokens=300)
 
 
@@ -58,7 +58,7 @@ def extract_topics(transcript: str, language: str, keyframes_descriptions: list)
         logger.debug(f"Result: {result}")
         topics = result.topics
     except Exception as e:
-        logger.error(f"Error while generating transcript summary... {e}")
+        logger.error(f"Error while extracting topis... {e}")
         topics = []
     
     logger.debug(f"Topics extracted: {topics}")
