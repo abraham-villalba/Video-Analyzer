@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 UPLOAD_DIR = os.getenv('UPLOAD_DIR', 'uploads')
+MAX_KEYFRAMES = int(os.getenv('MAX_KEYFRAMES', 10))
+MAX_KEYFRAMES = min(MAX_KEYFRAMES, 20) # Limit to 20 keyframes to avoid excessive processing
 
 def extract_audio(video_path : str, audio_path : str) -> None:
     """
@@ -126,7 +128,7 @@ def store_video(video_file):
     # Extract keyframes
     keyframes_dir = os.path.join(save_dir, "keyframes")
     os.makedirs(keyframes_dir, exist_ok=True)
-    extract_keyframes(video_path, keyframes_dir)
+    extract_keyframes(video_path, keyframes_dir, MAX_KEYFRAMES)
 
     return directory_id
 
