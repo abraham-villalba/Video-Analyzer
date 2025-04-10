@@ -84,7 +84,8 @@ if st.session_state.waiting and not st.session_state.analysis_result:
             results = analyze_video(st.session_state.video_id, language, summary_type)
             st.session_state.analysis_result = {
                 "topics": results.get('topics', []),
-                "summary": results.get('summary', 'No summary was generated.'),
+                "transcript_summary": results.get('transcript_summary', 'No summary was generated.'),
+                "holistic_summary": results.get('holistic_summary', 'No summary was generated.'),
                 "transcript": results.get('transcript', 'No transcript was generated'),
                 "keyframes": results.get('keyframes', [])
             }
@@ -114,9 +115,13 @@ if st.session_state.analysis_result:
     left_col, right_col = st.columns(2)
 
     with left_col:
+        st.markdown("#### Holistic Summary")
+        with st.expander("Holistic Summary", expanded=True):
+            st.write(result["holistic_summary"])
+
         st.markdown("#### Transcript Summary")
-        with st.expander("Summary", expanded=True):
-            st.write(result["summary"])
+        with st.expander("Transcript Summary", expanded=True):
+            st.write(result["transcript_summary"])
 
         st.markdown("#### Transcript")
         with st.expander("Transcript", expanded=True):
