@@ -91,7 +91,7 @@ def generate_holistic_summary(transcript: str, keyframes_descriptions: list, sum
         )
         summary = result.content
     except Exception as e:
-        logger.error(f"Error while generating transcript summary... {e}")
+        logger.error(f"Error while generating holistic summary... {e}")
         summary = ""
     
     logger.debug(f"Summary result: {summary}")

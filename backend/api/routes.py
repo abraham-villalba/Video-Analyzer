@@ -6,6 +6,7 @@ from api.utils.video_utils import store_video, video_exits, get_audio_file
 from api.services.transcription_service import transcribe_audio
 from api.services.summarization_service import generate_transcript_summary, generate_holistic_summary
 from api.services.keyframe_descriptions_service import generate_keyframe_descriptions
+from api.services.topics_service import extract_topics
 import os
 import json
 
@@ -15,7 +16,6 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/uploads/<path:filename>')
 def uploaded_file(filename):
-    print("Upload request for file?")
     uploads_dir = os.path.join(os.getcwd(), 'uploads')
     return send_from_directory(uploads_dir, filename)
 
@@ -67,12 +67,17 @@ def analyze_video():
         data.get('summary_type', 'concise'), 
         data.get('language', 'infer')
     )
+    topics = extract_topics(
+        transcript,
+        data.get('language', 'infer'),
+        list(map(lambda x: x['description'], keyframe_descriptions))
+    )
 
     response = {
         'transcript': transcript,
         'transcript_summary': transcript_summary,
         'holistic_summary': holistic_summary,
-        'topics': [],
+        'topics': topics,
         'keyframes': keyframe_descriptions
     }
 
