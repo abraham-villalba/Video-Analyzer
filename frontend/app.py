@@ -75,11 +75,14 @@ if st.session_state.waiting and not st.session_state.analysis_result:
         with st.status("Uploading video...", state="running", expanded=True) as s:
             # Only upload video if its a new file
             if st.session_state.last_uploaded_video_name != video_file.name:
+                st.toast('Uploading video...')
                 s.update(label="Uploading video...", state="running")
                 st.session_state.video_id = upload_video(video_file)
             if st.session_state.video_id == None:
                 raise Exception("Error while uploading video, try again later...")
             
+            st.toast('Your video was uploaded successfully!', icon='✅')
+            st.toast('Analyzing video...')
             s.update(label="Analyzing video...", state="running")
             results = analyze_video(st.session_state.video_id, language, summary_type)
             st.session_state.analysis_result = {
@@ -91,7 +94,8 @@ if st.session_state.waiting and not st.session_state.analysis_result:
             }
 
             s.update(label="Analysis completed!", state="complete")
-            time.sleep(2)
+            st.toast('Analysis completed!', icon='✅')
+            time.sleep(1.5)
             
     except Exception as e:
         st.session_state.error_message = f"Error during processing: {e}"
