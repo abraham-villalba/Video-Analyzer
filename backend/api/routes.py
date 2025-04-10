@@ -4,7 +4,7 @@ from api.utils.response_model import ResponseModel
 from api.utils.logger import logger
 from api.utils.video_utils import store_video, video_exits, get_audio_file
 from api.services.transcription_service import transcribe_audio
-from api.services.summarization_service import generate_transcript_summary
+from api.services.summarization_service import generate_transcript_summary, generate_holistic_summary
 from api.services.keyframe_descriptions_service import generate_keyframe_descriptions
 import os
 
@@ -51,10 +51,17 @@ def analyze_video():
     transcript = transcribe_audio(audio_path)
     transcript_summary = generate_transcript_summary(transcript, data.get('summary_type', 'concise'), data.get('language', 'infer'))
     keyframe_descriptions = generate_keyframe_descriptions(f"uploads/{video_id}/keyframes", data.get('language', 'infer'))
+    holistic_summary = generate_holistic_summary(
+        transcript, 
+        list(map(lambda x: x['description'], keyframe_descriptions)), 
+        data.get('summary_type', 'concise'), 
+        data.get('language', 'infer')
+    )
 
     response = {
         'transcript': transcript,
-        'summary': transcript_summary,
+        'transcript_summary': transcript_summary,
+        'holistic_summary': holistic_summary,
         'topics': [],
         'keyframes': keyframe_descriptions
     }
