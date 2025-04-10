@@ -1,14 +1,22 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, send_from_directory
 from api.utils.schemas import AnalyzeVideoRequestSchema, validate_analyze_video_request
 from api.utils.response_model import ResponseModel
 from api.utils.logger import logger
 from api.utils.video_utils import store_video, video_exits, get_audio_file
 from api.services.transcription_service import transcribe_audio
 from api.services.summarization_service import generate_transcript_summary
+from api.services.keyframe_descriptions_service import generate_keyframe_descriptions
+import os
 
 
 # Create a Blueprint object to define the routes
 api_bp = Blueprint('api', __name__) 
+
+@api_bp.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    print("Upload request for file?")
+    uploads_dir = os.path.join(os.getcwd(), 'uploads')
+    return send_from_directory(uploads_dir, filename)
 
 @api_bp.route('/upload_video', methods=['POST'])
 def upload_video():
@@ -42,12 +50,13 @@ def analyze_video():
     audio_path = get_audio_file(video_id)
     transcript = transcribe_audio(audio_path)
     transcript_summary = generate_transcript_summary(transcript, data.get('summary_type', 'concise'), data.get('language', 'infer'))
+    keyframe_descriptions = generate_keyframe_descriptions(f"uploads/{video_id}/keyframes", data.get('language', 'infer'))
 
     response = {
         'transcript': transcript,
         'summary': transcript_summary,
         'topics': [],
-        'keyframes': []
+        'keyframes': keyframe_descriptions
     }
 
     return ResponseModel(status='success', data=response).to_json(), 200

@@ -6,6 +6,7 @@ langchain-openai
 flask-cors
 marshmallow
 pytest
+openai
 
 # Whisper
 torch

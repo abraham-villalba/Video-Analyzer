@@ -1,6 +1,7 @@
 """ Util functions to interact with video files """
 import subprocess
 import os
+import glob
 from api.utils.logger import logger
 from werkzeug.utils import secure_filename
 from uuid import uuid4
@@ -9,6 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 UPLOAD_DIR = os.getenv('UPLOAD_DIR', 'uploads')
+MAX_KEYFRAMES = int(os.getenv('MAX_KEYFRAMES', 10))
+MAX_KEYFRAMES = min(MAX_KEYFRAMES, 20) # Limit to 20 keyframes to avoid excessive processing
 
 def extract_audio(video_path : str, audio_path : str) -> None:
     """
@@ -37,9 +40,74 @@ def extract_audio(video_path : str, audio_path : str) -> None:
         logger.error(f"Error during audio extraction: {str(e)}")
         raise e
     
+def extract_keyframes(video_path: str, output_dir: str, max_frames: int = 20) -> None:
+    """
+    Extracts up to `max_frames` visually distinct keyframes from a video using FFmpeg's scene detection.
+
+    :param video_path: Path to the input video.
+    :param output_dir: Directory to save the extracted keyframes.
+    :param max_frames: Maximum number of keyframes to extract.
+    :raises FileNotFoundError: If the video file does not exist.
+    :raises subprocess.CalledProcessError: If ffmpeg fails during extraction.
+    """
+    logger.info(f"Extracting up to {max_frames} keyframes from: {video_path}")
+
+    if not os.path.exists(video_path):
+        raise FileNotFoundError(f"Video file {video_path} does not exist")
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Output template path for frames
+    output_template = os.path.join(output_dir, "frame_%02d.jpg")
+
+    # FFmpeg command using scene detection to extract distinct frames
+    command = [
+        "ffmpeg",
+        "-i", video_path,
+        "-f", "image2",
+        "-vf", "select='eq(pict_type,PICT_TYPE_I)'",
+        "-vsync", "vfr",
+        output_template
+    ]
+
+    try:
+        subprocess.run(command, check=True)
+        logger.info(f"Keyframe extraction successful. Frames saved to {output_dir}")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error during keyframe extraction: {str(e)}")
+        raise e
+    
+    # Gather all extracted frames
+    frame_paths = sorted(glob.glob(os.path.join(output_dir, "frame_*.jpg")))
+
+    total_frames = len(frame_paths)
+    logger.info(f"Total keyframes extracted: {total_frames}")
+
+    # Downsample if needed
+    if total_frames > max_frames:
+        logger.info(f"Downsampling to {max_frames} frames evenly.")
+
+        # Select evenly spaced indices
+        selected_indices = set(
+            round(i * (total_frames - 1) / (max_frames - 1)) for i in range(max_frames)
+        )
+        logger.info(f"Indexes choosen to be kept: {selected_indices}")
+
+        for idx, frame_path in enumerate(frame_paths):
+            if idx not in selected_indices:
+                os.remove(frame_path)
+
+        # Rename retained frames to frame_00.jpg, frame_01.jpg, etc.
+        retained_paths = sorted(glob.glob(os.path.join(output_dir, "frame_*.jpg")))
+        for i, old_path in enumerate(retained_paths):
+            new_path = os.path.join(output_dir, f"frame_{i:02d}.jpg")
+            os.rename(old_path, new_path)
+
+    logger.info(f"Keyframe extraction complete. {min(total_frames, max_frames)} frames retained.")
+
 def store_video(video_file):
     """
-    Generates an id for a video file and stores it on the system with its corresponding audio file
+    Generates an id for a video file and stores it on the system with its corresponding audio file and keyframes
     :param video_file: The video to store
     :returns id identifier for this video analysis storage
     """
@@ -56,6 +124,11 @@ def store_video(video_file):
     # Extract audio
     audio_path = os.path.join(save_dir, "audio.wav")
     extract_audio(video_path, audio_path)
+
+    # Extract keyframes
+    keyframes_dir = os.path.join(save_dir, "keyframes")
+    os.makedirs(keyframes_dir, exist_ok=True)
+    extract_keyframes(video_path, keyframes_dir, MAX_KEYFRAMES)
 
     return directory_id
 

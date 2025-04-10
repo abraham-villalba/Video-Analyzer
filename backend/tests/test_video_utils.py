@@ -1,7 +1,7 @@
 import os
 import pytest
 import subprocess
-from api.utils.video_utils import extract_audio
+from api.utils.video_utils import extract_audio, extract_keyframes
 
 @pytest.fixture
 def sample_video():
@@ -35,3 +35,24 @@ def test_extract_audio_file_not_found():
     # Test if the extract_audio function raises a subprocess.CalledProcessError
     with pytest.raises(FileNotFoundError):
         extract_audio(non_existent_video_path, audio_path)
+
+def test_extract_keyframes(sample_video):
+    video_path, _ = sample_video
+    output_dir = "uploads/test/keyframes"
+
+    # Clear previous test run
+    if os.path.exists(output_dir):
+        for f in os.listdir(output_dir):
+            os.remove(os.path.join(output_dir, f))
+    else:
+        os.makedirs(output_dir)
+
+    extract_keyframes(video_path, output_dir, max_frames=5)
+
+    # Validate that some frames were extracted
+    extracted_files = [f for f in os.listdir(output_dir) if f.endswith('.jpg')]
+    assert len(extracted_files) > 0, "No keyframes were extracted"
+    assert len(extracted_files) <= 5, "Too many keyframes were extracted"
+
+    for i, file in enumerate(sorted(extracted_files)):
+        assert file.startswith("frame_"), f"Unexpected filename format: {file}"
