@@ -1,6 +1,13 @@
 from utils.api import upload_video, analyze_video
 import streamlit as st
 import time
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+
+BACKEND_URI = os.environ.get("BACKEND_URI", "http://localhost:5000")
 
 # Page configuration
 st.set_page_config(
@@ -75,17 +82,16 @@ if st.session_state.waiting and not st.session_state.analysis_result:
             
             s.update(label="Analyzing video...", state="running")
             results = analyze_video(st.session_state.video_id, language, summary_type)
-
             st.session_state.analysis_result = {
-                "topics": ["Sports", "Politics"],
+                "topics": results.get('topics', []),
                 "summary": results.get('summary', 'No summary was generated.'),
                 "transcript": results.get('transcript', 'No transcript was generated'),
-                "keyframes": [
-                    {"image_url": f"Image {i+1}", "description": f"Description {i+1}"}
-                    for i in range(20)
-                ]
+                "keyframes": results.get('keyframes', [])
             }
+
             s.update(label="Analysis completed!", state="complete")
+            time.sleep(2)
+            
     except Exception as e:
         st.session_state.error_message = f"Error during processing: {e}"
     finally:
@@ -101,13 +107,14 @@ if st.session_state.analysis_result:
     st.markdown("---")
     st.markdown("## Video Analysis Results")
 
-    st.markdown("#### Topics")
-    st.pills("Topics", result["topics"],label_visibility="collapsed")
+    if len(result['topics']) != 0:
+        st.markdown("#### Topics")
+        st.pills("Topics", result["topics"],label_visibility="collapsed")
 
     left_col, right_col = st.columns(2)
 
     with left_col:
-        st.markdown("#### Summary")
+        st.markdown("#### Transcript Summary")
         with st.expander("Summary", expanded=True):
             st.write(result["summary"])
 
@@ -118,6 +125,6 @@ if st.session_state.analysis_result:
     with right_col:
         st.markdown("#### Keyframes and Descriptions")
         for i, frame in enumerate(result["keyframes"]):
-            st.write(f"**{frame['image_url']}**")
+            st.image(f"{BACKEND_URI}/api/{frame['image_path']}", caption=f"Frame {i + 1}")
             st.write(frame["description"])
         
