@@ -7,6 +7,7 @@ from api.services.transcription_service import transcribe_audio
 from api.services.summarization_service import generate_transcript_summary, generate_holistic_summary
 from api.services.keyframe_descriptions_service import generate_keyframe_descriptions
 import os
+import json
 
 
 # Create a Blueprint object to define the routes
@@ -47,8 +48,17 @@ def analyze_video():
         logger.error(f"Error analyzing video: Video doesn't exist")
         return ResponseModel(status="error", error=errors).to_json(), 404 # Not Found
     
-    audio_path = get_audio_file(video_id)
-    transcript = transcribe_audio(audio_path)
+    # Check if the transcript already exists, if not, generate it
+    transcript_path = f"uploads/{video_id}/data.json"
+    if not os.path.exists(transcript_path):
+        audio_path = get_audio_file(video_id)
+        transcript = transcribe_audio(audio_path)
+    else:
+        with open(transcript_path, 'r') as f:
+            file = json.load(f)
+        transcript = file.get('transcript', 'No transcript available')
+
+
     transcript_summary = generate_transcript_summary(transcript, data.get('summary_type', 'concise'), data.get('language', 'infer'))
     keyframe_descriptions = generate_keyframe_descriptions(f"uploads/{video_id}/keyframes", data.get('language', 'infer'))
     holistic_summary = generate_holistic_summary(

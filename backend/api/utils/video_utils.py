@@ -2,7 +2,9 @@
 import subprocess
 import os
 import glob
+import json
 from api.utils.logger import logger
+from api.services.transcription_service import transcribe_audio
 from werkzeug.utils import secure_filename
 from uuid import uuid4
 from dotenv import load_dotenv
@@ -107,7 +109,7 @@ def extract_keyframes(video_path: str, output_dir: str, max_frames: int = 20) ->
 
 def store_video(video_file):
     """
-    Generates an id for a video file and stores it on the system with its corresponding audio file and keyframes
+    Generates an id for a video file and stores it on the system with its corresponding audio file, keyframes and transcript
     :param video_file: The video to store
     :returns id identifier for this video analysis storage
     """
@@ -129,6 +131,13 @@ def store_video(video_file):
     keyframes_dir = os.path.join(save_dir, "keyframes")
     os.makedirs(keyframes_dir, exist_ok=True)
     extract_keyframes(video_path, keyframes_dir, MAX_KEYFRAMES)
+
+    # Generate and store transcript
+    transcript_path = os.path.join(save_dir, "data.json")
+    transcript = transcribe_audio(audio_path)
+    with open(transcript_path, 'w') as f:
+        json.dump({"transcript": transcript}, f)
+    logger.info(f"Transcript stored in {transcript_path}")
 
     return directory_id
 
