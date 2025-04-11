@@ -11,7 +11,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-UPLOAD_DIR = os.getenv('UPLOAD_DIR', 'uploads')
+UPLOAD_DIR = os.getenv('UPLOAD_DIR')
+
+if not UPLOAD_DIR:
+    # Default fallback to relative path in local development
+    UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../uploads'))
+
+logger.debug(f"[DEBUG] Using UPLOAD_DIR={UPLOAD_DIR}")
 MAX_KEYFRAMES = int(os.getenv('MAX_KEYFRAMES', 10))
 MAX_KEYFRAMES = min(MAX_KEYFRAMES, 20) # Limit to 20 keyframes to avoid excessive processing
 
