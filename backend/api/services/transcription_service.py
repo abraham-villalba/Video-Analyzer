@@ -1,8 +1,8 @@
-import whisper
-import os
+from openai import OpenAI
+from api.config import Config
 from api.utils.logger import logger
+import os
 
-model = whisper.load_model('base')
 
 def transcribe_audio(audio_path: str) -> str:
     """
@@ -23,6 +23,22 @@ def transcribe_audio(audio_path: str) -> str:
         logger.error(f"File {audio_path} does not exists...")
         raise FileNotFoundError(f"File {audio_path} does not exist")
     
-    result = model.transcribe(audio_path)
-    logger.debug(f"Result from transcribing audio file: {result}")
-    return result['text']
+    try:
+        client = OpenAI(
+            api_key=Config.OPENAI_API_KEY
+        )
+        audio_file= open(audio_path, "rb")
+
+        transcription = client.audio.transcriptions.create(
+            model="gpt-4o-mini-transcribe", 
+            file=audio_file
+        )
+
+        logger.debug(f"Result from transcribing audio file: {transcription.text}")
+        return transcription.text
+    except Exception as e:
+        logger.error(f"Error during audio transcription: {str(e)}")
+        raise e
+
+    
+

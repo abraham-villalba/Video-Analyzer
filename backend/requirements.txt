@@ -7,8 +7,3 @@ flask-cors
 marshmallow
 pytest
 openai
-
-# Whisper
-torch
-numpy<2.0
-git+https://github.com/openai/whisper.git
