@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - ./uploads:/app/uploads
       - ./backend/logs:/app/logs
@@ -18,4 +18,4 @@ services:
     depends_on:
       - backend
     environment:
-      - BACKEND_URI=http://backend:5000
+      - BACKEND_URI=http://backend:5001
