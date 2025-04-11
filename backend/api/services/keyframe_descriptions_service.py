@@ -1,5 +1,3 @@
-from PIL import Image
-import io
 import os
 import base64
 import json
@@ -65,9 +63,10 @@ def encode_image(image_path: str) -> str:
 def encode_images(keyframes_path: str) -> list:
     """Iterates over images in a directory and returns them as base64 encoded strings"""
     images = []
-    for file_name in os.listdir(keyframes_path):
+    for file_name in sorted(os.listdir(keyframes_path)):
         if file_name.endswith(('.jpg', '.jpeg', '.png')):
             file_path = os.path.join(keyframes_path, file_name)
+            print(f"Encoding image: {file_path}")
             base64_image = encode_image(file_path)
             if base64_image:
                 images.append({

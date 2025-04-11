@@ -4,7 +4,6 @@ import os
 
 load_dotenv()
 
-
 BACKEND_URI = os.environ.get("BACKEND_URI", "http://localhost:5000")
 
 def upload_video(video) -> str:
@@ -13,7 +12,7 @@ def upload_video(video) -> str:
         response = requests.post(
             f"{BACKEND_URI}/api/upload_video",
             files=files,
-            timeout=50
+            timeout=100
         )
         if response.status_code == 200:
             data = response.json()["data"]["id"]

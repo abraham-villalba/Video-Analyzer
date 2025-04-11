@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./backend/logs:/app/logs
+    env_file: ./backend/.env
+    environment:
+      - UPLOAD_DIR=/app/uploads
+  frontend:
+    build: ./frontend
+    ports:
+      - "8502:8502"
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - backend
+    environment:
+      - BACKEND_URI=http://backend:5000

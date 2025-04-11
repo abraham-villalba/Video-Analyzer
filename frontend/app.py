@@ -7,7 +7,7 @@ import os
 load_dotenv()
 
 
-BACKEND_URI = os.environ.get("BACKEND_URI", "http://localhost:5000")
+UPLOAD_DIR = os.environ.get("UPLOAD_DIR", "")
 
 # Page configuration
 st.set_page_config(
@@ -75,22 +75,27 @@ if st.session_state.waiting and not st.session_state.analysis_result:
         with st.status("Uploading video...", state="running", expanded=True) as s:
             # Only upload video if its a new file
             if st.session_state.last_uploaded_video_name != video_file.name:
+                st.toast('Uploading video...')
                 s.update(label="Uploading video...", state="running")
                 st.session_state.video_id = upload_video(video_file)
             if st.session_state.video_id == None:
                 raise Exception("Error while uploading video, try again later...")
             
+            st.toast('Your video was uploaded successfully!', icon='✅')
+            st.toast('Analyzing video...')
             s.update(label="Analyzing video...", state="running")
             results = analyze_video(st.session_state.video_id, language, summary_type)
             st.session_state.analysis_result = {
                 "topics": results.get('topics', []),
-                "summary": results.get('summary', 'No summary was generated.'),
+                "transcript_summary": results.get('transcript_summary', 'No summary was generated.'),
+                "holistic_summary": results.get('holistic_summary', 'No summary was generated.'),
                 "transcript": results.get('transcript', 'No transcript was generated'),
                 "keyframes": results.get('keyframes', [])
             }
 
             s.update(label="Analysis completed!", state="complete")
-            time.sleep(2)
+            st.toast('Analysis completed!', icon='✅')
+            time.sleep(1.5)
             
     except Exception as e:
         st.session_state.error_message = f"Error during processing: {e}"
@@ -114,9 +119,13 @@ if st.session_state.analysis_result:
     left_col, right_col = st.columns(2)
 
     with left_col:
+        st.markdown("#### Holistic Summary")
+        with st.expander("Holistic Summary", expanded=True):
+            st.write(result["holistic_summary"])
+
         st.markdown("#### Transcript Summary")
-        with st.expander("Summary", expanded=True):
-            st.write(result["summary"])
+        with st.expander("Transcript Summary", expanded=True):
+            st.write(result["transcript_summary"])
 
         st.markdown("#### Transcript")
         with st.expander("Transcript", expanded=True):
@@ -125,6 +134,8 @@ if st.session_state.analysis_result:
     with right_col:
         st.markdown("#### Keyframes and Descriptions")
         for i, frame in enumerate(result["keyframes"]):
-            st.image(f"{BACKEND_URI}/api/{frame['image_path']}", caption=f"Frame {i + 1}")
+            img_path = os.path.abspath(os.path.join(os.getcwd(), UPLOAD_DIR, frame['image_path']))
+            if os.path.exists(img_path):
+                st.image(f"{img_path}", caption=f"Frame {i + 1}")
             st.write(frame["description"])
         
