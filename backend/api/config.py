@@ -7,7 +7,7 @@ load_dotenv(override=True)
 
 class Config:
     """ Base configuration. """
-    DEBUG = False
+    DEBUG = bool(os.getenv('DEBUG', 'False'))
 
     LLM_WRAPPER = os.getenv('LLM_WRAPPER')
     if not LLM_WRAPPER:

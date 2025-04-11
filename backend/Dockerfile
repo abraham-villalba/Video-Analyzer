@@ -15,6 +15,6 @@ COPY . .
 RUN pip3 install -r requirements.txt
 
 # Expose the port the app runs on
-EXPOSE 5000
+EXPOSE 5001
 
 CMD ["python", "run.py"]
