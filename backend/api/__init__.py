@@ -5,7 +5,7 @@ from api.error_handlers import register_error_handlers
 
 def create_app():
     """ Creates a Flask app instance. """
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='uploads')
     # Enable CORS
     CORS(app)
     # Load configurations
