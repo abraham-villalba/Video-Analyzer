@@ -7,7 +7,7 @@ import os
 load_dotenv()
 
 
-BACKEND_URI = os.environ.get("BACKEND_URI", "http://localhost:5000")
+UPLOAD_DIR = os.environ.get("UPLOAD_DIR", "")
 
 # Page configuration
 st.set_page_config(
@@ -134,6 +134,8 @@ if st.session_state.analysis_result:
     with right_col:
         st.markdown("#### Keyframes and Descriptions")
         for i, frame in enumerate(result["keyframes"]):
-            st.image(f"{BACKEND_URI}/api/{frame['image_path']}", caption=f"Frame {i + 1}")
+            img_path = os.path.abspath(os.path.join(os.getcwd(), UPLOAD_DIR, frame['image_path']))
+            if os.path.exists(img_path):
+                st.image(f"{img_path}", caption=f"Frame {i + 1}")
             st.write(frame["description"])
         
