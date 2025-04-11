@@ -36,6 +36,9 @@ def extract_audio(video_path : str, audio_path : str) -> None:
     if not os.path.exists(video_path):
         logger.error(f"File {video_path} does not exists...")
         raise FileNotFoundError(f"File {video_path} does not exist")
+    if not os.path.exists(os.path.dirname(audio_path)):
+        logger.error(f"Directory {os.path.dirname(audio_path)} does not exist")
+        raise FileNotFoundError(f"Directory {os.path.dirname(audio_path)} does not exist")
     try:
         command = [
             "ffmpeg", "-i", video_path,

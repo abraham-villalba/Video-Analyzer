@@ -16,27 +16,32 @@ LANGUAGES = {
     'infer': 'infer'
 }
 
-# LLM Selection
-if Config.LLM_WRAPPER == 'openai':
-    logger.info(f"Using OpenAI models for topic extraction -> {Config.LLM_MODEL}")
-    model = ChatOpenAI(
-                api_key=Config.OPENAI_API_KEY, 
-                model=Config.LLM_MODEL,
-                temperature=0.2,
-                max_tokens=300,
-                timeout=None,
-                max_retries=2
-            )
-else:
-    logger.info(f"Using Ollama models for topic extraction -> {Config.LLM_MODEL}")
-    model = ChatOllama(model=Config.LLM_MODEL, temperature=0.2, max_tokens=300)
-
-
 def extract_topics(transcript: str, language: str, keyframes_descriptions: list) -> list:
     """
-    
+    Extract topics from a transcript and keyframe descriptions using an LLM.
+
+    :param transcript: The video transcript.
+    :type transcript: str
+    :param language: Language code or "infer".
+    :type language: str
+    :param keyframes_descriptions: Descriptions of keyframes.
+    :type keyframes_descriptions: list
+    :returns: A list of extracted topics.
+    :rtype: list
     """
-    logger.info(f"Extracting topics from for transcript and {len(keyframes_descriptions)} keyframe descriptions in {language}.")
+    # LLM Selection
+    logger.info(f"Extracting topics from for transcript and {len(keyframes_descriptions)} keyframe descriptions in {language}. Using ({Config.LLM_MODEL},{Config.LLM_WRAPPER})")
+    if Config.LLM_WRAPPER == 'openai':
+        model = ChatOpenAI(
+                    api_key=Config.OPENAI_API_KEY, 
+                    model=Config.LLM_MODEL,
+                    temperature=0.2,
+                    max_tokens=300,
+                    timeout=None,
+                    max_retries=2
+                )
+    else:
+        model = ChatOllama(model=Config.LLM_MODEL, temperature=0.2, max_tokens=300)
     
     language_instructions = "" if language == "infer" else f"The topics must be in {LANGUAGES.get(language, 'english')}"
     system_prompt = f"Extract the main topics from the video transcript and keyframe descriptions. {language_instructions} Provide 7 topics as maximum."
@@ -44,7 +49,6 @@ def extract_topics(transcript: str, language: str, keyframes_descriptions: list)
     desc = '\n'.join([f'Frame {i + 1}: {desc}' for i, desc in enumerate(keyframes_descriptions)])
     prompt = f"Transcript: {transcript}\nKeyframe descriptions: {desc}"
     
-    logger.debug(f"Prompt: {system_prompt}\n{prompt}")
     try:
         structured_model = model.with_structured_output(TopicResponse)
         result = structured_model.invoke(
@@ -55,10 +59,9 @@ def extract_topics(transcript: str, language: str, keyframes_descriptions: list)
                 HumanMessage(content=prompt)
             ]
         )
-        logger.debug(f"Result: {result}")
         topics = result.topics
     except Exception as e:
-        logger.error(f"Error while extracting topis... {e}")
+        logger.error(f"Error while extracting topics... {str(e)}")
         topics = []
     
     logger.debug(f"Topics extracted: {topics}")
